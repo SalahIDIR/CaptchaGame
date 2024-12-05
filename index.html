@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean Style Game</title>
+    <style>
+        /* Ocean-style background */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #1e3c72, #2a5298);
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        #container {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, #205d77, #163e51);
+            border: 3px solid #89c7d6;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        #trash {
+            width: 120px;
+            height: 120px;
+            background-color: #464646;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            position: absolute;
+            bottom: 20px;
+            left: calc(50% - 60px);
+        }
+
+        .circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            position: absolute;
+            cursor: grab;
+            transition: transform 0.2s ease;
+        }
+
+        .circle:hover {
+            transform: scale(1.1);
+        }
+
+        .red {
+            background-color: #ff4c4c;
+        }
+
+        .green {
+            background-color: #4caf50;
+        }
+
+        #score {
+            margin: 10px 0;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ocean Game</h1>
+    <p id="score">Score: 0</p>
+    <div id="container">
+        <div id="trash"></div>
+    </div>
+    <script>
+        const container = document.getElementById('container');
+        const trash = document.getElementById('trash');
+        const scoreDisplay = document.getElementById('score');
+        let score = 0;
+        let redCircles = 5;
+        let greenCircles = 5;
+
+        // Function to make elements draggable
+        function makeDraggable(element) {
+            let offsetX = 0, offsetY = 0, startX = 0, startY = 0;
+
+            element.addEventListener('mousedown', (e) => {
+                startX = e.clientX;
+                startY = e.clientY;
+
+                function mouseMove(e) {
+                    offsetX = startX - e.clientX;
+                    offsetY = startY - e.clientY;
+
+                    startX = e.clientX;
+                    startY = e.clientY;
+
+                    element.style.top = (element.offsetTop - offsetY) + 'px';
+                    element.style.left = (element.offsetLeft - offsetX) + 'px';
+
+                    // Check if the element is dropped on the trash
+                    if (isOverlapping(element, trash)) {
+                        if (element.classList.contains('red')) {
+                            container.removeChild(element);
+                            score++;
+                            redCircles--;
+                            updateScore();
+                            checkWinCondition();
+                        } else if (element.classList.contains('green')) {
+                            resetGame();
+                        }
+                    }
+                }
+
+                function mouseUp() {
+                    document.removeEventListener('mousemove', mouseMove);
+                    document.removeEventListener('mouseup', mouseUp);
+                }
+
+                document.addEventListener('mousemove', mouseMove);
+                document.addEventListener('mouseup', mouseUp);
+            });
+        }
+
+        // Check if two elements overlap
+        function isOverlapping(el1, el2) {
+            const rect1 = el1.getBoundingClientRect();
+            const rect2 = el2.getBoundingClientRect();
+
+            return !(
+                rect1.top > rect2.bottom ||
+                rect1.bottom < rect2.top ||
+                rect1.left > rect2.right ||
+                rect1.right < rect2.left
+            );
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreDisplay.textContent = `Score: ${score}`;
+        }
+
+        // Check win condition
+        function checkWinCondition() {
+            if (redCircles === 0) {
+                alert("Well done! Redirecting to Google...");
+                window.location.href = "https://www.google.com";
+            }
+        }
+
+        // Reset the game
+        function resetGame() {
+            alert("Green circle detected! Game reset.");
+            score = 0;
+            redCircles = 5;
+            greenCircles = 5;
+            container.querySelectorAll('.circle').forEach(circle => container.removeChild(circle));
+            spawnCircles();
+            updateScore();
+        }
+
+        // Spawn red and green circles
+        function spawnCircles() {
+            for (let i = 0; i < 5; i++) {
+                spawnCircle('red');
+                spawnCircle('green');
+            }
+        }
+
+        function spawnCircle(color) {
+            const circle = document.createElement('div');
+            circle.classList.add('circle', color);
+            circle.style.top = Math.random() * (container.offsetHeight - 50) + 'px';
+            circle.style.left = Math.random() * (container.offsetWidth - 50) + 'px';
+            container.appendChild(circle);
+            makeDraggable(circle);
+        }
+
+        // Initial setup
+        window.onload = () => {
+            spawnCircles();
+        };
+    </script>
+</body>
+</html>
